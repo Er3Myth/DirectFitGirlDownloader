@@ -128,21 +128,21 @@ int main() {
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
 
+        const std::string DATANODES_TYPE = "DataNodes";
+        const std::string FUCKINGFAST_TYPE = "FuckingFast";
+
         // Generate links.
         auto fitGirl = LinkGenerator();
         fitGirl.clearHeaders();
         fitGirl.updateHeaders(type);
-        std::vector<std::string> linksFuckingFast = fitGirl.getDownloadLinks(url,"FuckingFast");
-        std::vector<std::string> linksDataNodes = fitGirl.getDownloadLinks(url,"DataNodes");
-        std::vector<std::string> linksFitGirl = (type == "FuckingFast") ? linksFuckingFast : linksDataNodes;
+        std::vector<std::string> linksFuckingFast = fitGirl.getDownloadLinks(url,FUCKINGFAST_TYPE);
+        std::vector<std::string> linksDataNodes = fitGirl.getDownloadLinks(url,DATANODES_TYPE);
+        std::vector<std::string> linksFitGirl = (type == FUCKINGFAST_TYPE) ? linksFuckingFast : linksDataNodes;
 
         // Debugging.
         for (string& link : linksFitGirl) {
             cout << link << endl;
         }
-
-        const std::string DATANODES_TYPE = "DataNodes";
-        const std::string FUCKINGFAST_TYPE = "FuckingFast";
 
         std::string currentType = type;// Track consecutive failures for each mirror type
         std::map<std::string, int> consecutiveFailures = {
@@ -214,14 +214,13 @@ int main() {
                     }
                     else {
                         // Toggle currentType.
-                        currentType = "FuckingFast";
+                        currentType = FUCKINGFAST_TYPE;
                         linksFitGirl = linksFuckingFast;
                         fitGirl.updateHeaders(currentType); // Set default Headers
                     }
                 }
             }
         }
-
 
         if (links.empty()) {
             throw std::runtime_error("No links were generated");
