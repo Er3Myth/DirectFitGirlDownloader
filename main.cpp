@@ -1,10 +1,16 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <chrono>
 #include <map>
 #include <windows.h>
 #include <oleauto.h> // For CComBSTR and COM utilities
+#include <thread>
+#include <locale> // test
+
 #include "LinkGenerator.h"
+#include "ProgressBar.h"
+
 
 #include "IDManTypeInfo.h"      // Header for COM interface definitions
 #include "IDManTypeInfo_i.c"    // Source for COM object implementations
@@ -84,6 +90,9 @@ HRESULT SafePutArrayString(SAFEARRAY* psa, LONG index[], const std::wstring& str
 std::wstring convertToWString(const std::string& str);
 
 int main() {
+
+    // Set the console to use UTF-8 encoding
+    system("chcp 65001");
     try {
         // Initialize COM
         ComInitializer comInit;
@@ -133,6 +142,7 @@ int main() {
 
         // Generate links.
         auto fitGirl = LinkGenerator();
+        fitGirl.setVerbose(false); // Debugging
         fitGirl.clearHeaders();
         fitGirl.updateHeaders(type);
         std::vector<std::string> linksFuckingFast = fitGirl.getDownloadLinks(url,FUCKINGFAST_TYPE);
@@ -156,6 +166,10 @@ int main() {
             "2. Retry the same mirror (ONLY AFTER SWITCHING A VPN/Proxy ) \n"
             "\nEnter your choice (1 or 2): ";
 
+        ProgressBar pb(linksFitGirl.size(),50);
+        pb.setPrefix("Testing loading:");
+        pb.setSuffix(" Please wait...");
+
         for (std::string& link : linksFitGirl) {
             bool success = false;
 
@@ -166,6 +180,7 @@ int main() {
                     ));
                     // Reset the failure counter on success.
                     consecutiveFailures[currentType] = 0;
+                    pb.incrememnt();
                     success = true; // Exit loop on success
                 }
                 catch (const toggle_mirrors& e) {
@@ -221,7 +236,7 @@ int main() {
                 }
             }
         }
-
+        pb.complete(); // endl
         if (links.empty()) {
             throw std::runtime_error("No links were generated");
         }
@@ -298,7 +313,6 @@ int main() {
     catch (const std::exception& e) {
         std::cerr << "Don't know wtf happened here: " << e.what() << std::endl;
     }
-
 
 }
 

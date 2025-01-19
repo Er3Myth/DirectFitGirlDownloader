@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <fstream>
 #include "CurlHelper.h"
 #include <libxml/HTMLparser.h>
 #include <libxml/xpath.h>
@@ -24,6 +23,7 @@ public:
     std::string parseUrlPath(const std::string &url);
     void updateHeaders(const std::string& type);
     void clearHeaders() const;
+    void setVerbose(bool verbose);
     std::vector<std::string> getDownloadLinks(const std::string& url, const std::string& type);
     std::string getFuckingfastLink(const std::string& downloadURL);
     std::string getDataNodesLink(const std::string& downloadURL);

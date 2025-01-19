@@ -1,7 +1,3 @@
-//
-// Created by Myth on 12/2/2024.
-//
-
 #include "LinkGenerator.h"
 #include <format>
 #include <iomanip>
@@ -90,9 +86,7 @@ void LinkGenerator::updateHeaders(const std::string& type) {
     if (type == "DataNodes") {
         curlObj->setHeaders({
         "Content-Type: application/x-www-form-urlencoded",
-        "Host: datanodes.to",
-        "Origin: https://datanodes.to",
-        "Referer: https://datanodes.to/download"
+        "Accept: text/plain"
         });
     }
 }
@@ -101,6 +95,9 @@ void LinkGenerator::clearHeaders() const {
     curlObj->clearHeaders();
 }
 
+void LinkGenerator::setVerbose(bool verbose) {
+    curlObj->setVerbose(verbose);
+}
 
 std::vector<std::string> LinkGenerator::getDownloadLinks(const std::string& url, const std::string& type) {
     std::vector<std::string> links;
@@ -193,8 +190,6 @@ std::vector<std::string> LinkGenerator::getDownloadLinks(const std::string& url,
 // Main Functions
 std::string LinkGenerator::getFuckingfastLink(const std::string& downloadURL) {
 
-    // Get the url with debugging
-    curlObj->setVerbose(true);
     CurlHelper::HttpResponse textResponse = curlObj->get(downloadURL);
 
     //std::cout << "Response Body: " << textResponse.responseBody << std::endl; // Debugging
@@ -254,25 +249,19 @@ std::string LinkGenerator::getDataNodesLink(const std::string &downloadURL) {
         std::string fileCode = cleanPathSegment(pathSegments[1]); // Encodes UTF-8 to Latin-1
         std::string fileName = cleanPathSegment(pathSegments[2]); // Encodes UTF-8 to Latin-1
 
-        // Verbose output
-        curlObj->setVerbose(true);
-
         while (true) {
-            // Clear cookies since every request uses the same connection
-            curlObj->clearCookies();
-            curlObj->setHeaders({
-                std::format("Cookie: lang=english; file_name={}; file_code={};", fileName, fileCode)
-            });
 
-            CurlHelper::HttpResponse response = curlObj->post(downloadURL, {
-            {"op", "download2"},
-            {"id", fileCode},
-            {"rand", ""},
-            {"referer", "https://datanodes.to/download"},
-            {"method_free", "Free Download >>"},
-            {"method_premium", ""},
-            {"adblock_detected", ""}
-            });
+            std::map<std::string, std::string> postData = {
+                {"op", "download2"},
+                {"id", fileCode},
+                {"rand", ""},
+                {"referer", "https://fitgirl-repacks.site/"},
+                {"method_free", "Free Download >>"},
+                {"adblock_detected", ""},
+                {"dl", "1"}
+            };
+
+            CurlHelper::HttpResponse response = curlObj->post("https://datanodes.to/download", postData);
 
             if (std::to_string(response.statusCode) == "400" || std::to_string(response.statusCode) == "502") {
                 std::cerr << "Status Code: "<< response.statusCode
@@ -283,16 +272,17 @@ std::string LinkGenerator::getDataNodesLink(const std::string &downloadURL) {
                 continue;
             }
 
-            if (std::to_string(response.statusCode) == "302" ) {
+            if (response.statusCode == 200) {
+
                 // Get the location from the response header
-                std::string prefix = "location: ";
-                size_t startPos = response.responseHeaders.find(prefix);
+                std::string prefix = R"("url":")";
+                size_t startPos = response.responseBody.find(prefix);
 
                 if (startPos != std::string::npos) {
                     startPos += prefix.length(); // Move start position at the end of prefix
-                    size_t endPos = response.responseHeaders.find("\r\n", startPos); // End position
+                    size_t endPos = response.responseBody.find(R"("})", startPos); // End position
                     if (endPos != std::string::npos) {
-                        return response.responseHeaders.substr(startPos, endPos - startPos);
+                        return response.responseBody.substr(startPos, endPos - startPos);
                     }
                 }
                 else {throw std::logic_error("Failed to extract location header from response.");}
