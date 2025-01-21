@@ -84,6 +84,8 @@ private:
     SAFEARRAY* sa;
 };
 
+void updateConsoleTitle(size_t current, size_t total, const std::string& currentLink, bool retry);
+
 // Helper function to safely put string into SAFEARRAY
 HRESULT SafePutArrayString(SAFEARRAY* psa, LONG index[], const std::wstring& str);
 
@@ -149,6 +151,9 @@ int main() {
         std::vector<std::string> linksDataNodes = fitGirl.getDownloadLinks(url,DATANODES_TYPE);
         std::vector<std::string> linksFitGirl = (type == FUCKINGFAST_TYPE) ? linksFuckingFast : linksDataNodes;
 
+        // Check if the number of links is the same in both mirrors.
+        bool areLinksCountEqual = linksFitGirl.size() == linksDataNodes.size();
+
         // Debugging.
         for (string& link : linksFitGirl) {
             cout << link << endl;
@@ -167,16 +172,23 @@ int main() {
             "\nEnter your choice (1 or 2): ";
 
         ProgressBar pb(linksFitGirl.size(),50);
-        pb.setPrefix("Testing loading:");
+        pb.setPrefix("Processing links:");
         pb.setSuffix(" Please wait...");
 
-        for (std::string& link : linksFitGirl) {
+        // Initial console title
+        SetConsoleTitleA("DirectFitGirlDownloader - Starting...");
+
+        for (size_t i = 0; i < linksFitGirl.size(); ++i) {
             bool success = false;
 
+
+            // update Console title at the start of each link
+            updateConsoleTitle(i + 1, linksFitGirl.size() , linksFitGirl[i], false);
             while (!success) {
                 try {
                     links.emplace_back(convertToWString(
-                        currentType == DATANODES_TYPE ? fitGirl.getDataNodesLink(link) : fitGirl.getFuckingfastLink(link)
+                        currentType == DATANODES_TYPE ? fitGirl.getDataNodesLink(linksFitGirl[i])
+                                                      : fitGirl.getFuckingfastLink(linksFitGirl[i])
                     ));
                     // Reset the failure counter on success.
                     consecutiveFailures[currentType] = 0;
@@ -184,7 +196,10 @@ int main() {
                     success = true; // Exit loop on success
                 }
                 catch (const toggle_mirrors& e) {
-                    std::cout << e.what() << std::endl;
+                    // Update the title
+                    updateConsoleTitle(i + 1, linksFitGirl.size() , linksFitGirl[i], true);
+
+                    std::cerr << "\n" << e.what() << std::endl;
                     consecutiveFailures[currentType]++;
 
                     if(consecutiveFailures[FUCKINGFAST_TYPE] >=2 && consecutiveFailures[DATANODES_TYPE] >=2 )
@@ -203,7 +218,9 @@ int main() {
                                 switch (choice) {
                                     case 1:
                                         currentType = DATANODES_TYPE; // Switch to another mirror
-                                        linksFitGirl = linksDataNodes;
+                                        if (!areLinksCountEqual)
+                                            std::cerr << "One of the FitGirl mirrors might not contain " << (linksDataNodes.size() > linksFuckingFast.size() ? linksDataNodes.size() - linksFuckingFast.size() : linksFuckingFast.size() - linksDataNodes.size()) << " link(s)" << std::endl;
+                                        linksFitGirl = linksDataNodes; // Update the loop vector
                                         fitGirl.updateHeaders(currentType); // Set default Headers
                                         validInput = true;
                                         break;
@@ -236,10 +253,14 @@ int main() {
                 }
             }
         }
+
+        SetConsoleTitleA("DirectFitGirlDownloader - Download Queue Ready!");
         pb.complete(); // endl
         if (links.empty()) {
+            SetConsoleTitleA("DirectFitGirlDownloader - No links were generated");
             throw std::runtime_error("No links were generated");
         }
+
         std::cout << "Links were generated, transferring them to IDM now.\n";
 
         // Create SAFEARRAY
@@ -314,6 +335,21 @@ int main() {
         std::cerr << "Don't know wtf happened here: " << e.what() << std::endl;
     }
 
+}
+
+void updateConsoleTitle(size_t current, size_t total, const std::string& currentLink, bool retry) {
+    std::string truncatedLink = currentLink;
+    // Truncate link if it's too long
+    if (truncatedLink.size() > 50)
+        truncatedLink = truncatedLink.substr(0,25) + "..." + truncatedLink.substr(truncatedLink.size()-22);
+
+    std::string title = (retry) ?
+        "Retrying [" + std::to_string(current) + "/" +
+        std::to_string(total) + "] - " + truncatedLink :
+        "Trying [" + std::to_string(current) + "/" +
+        std::to_string(total) + "] - " + truncatedLink;
+
+    SetConsoleTitle(title.c_str());
 }
 
 HRESULT SafePutArrayString(SAFEARRAY* psa, LONG index[], const std::wstring& str) {
