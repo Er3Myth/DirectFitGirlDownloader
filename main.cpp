@@ -10,7 +10,7 @@
 
 #include "LinkGenerator.h"
 #include "ProgressBar.h"
-
+#include "ConsoleColors.h"
 
 #include "IDManTypeInfo.h"      // Header for COM interface definitions
 #include "IDManTypeInfo_i.c"    // Source for COM object implementations
@@ -183,7 +183,7 @@ int main() {
 
 
             // update Console title at the start of each link
-            updateConsoleTitle(i + 1, linksFitGirl.size() , linksFitGirl[i], false);
+            updateConsoleTitle(i+1, linksFitGirl.size() , linksFitGirl[i], false);
             while (!success) {
                 try {
                     links.emplace_back(convertToWString(
@@ -197,9 +197,9 @@ int main() {
                 }
                 catch (const toggle_mirrors& e) {
                     // Update the title
-                    updateConsoleTitle(i + 1, linksFitGirl.size() , linksFitGirl[i], true);
+                    updateConsoleTitle(i+1, linksFitGirl.size() , linksFitGirl[i], true);
 
-                    std::cerr << "\n" << e.what() << std::endl;
+                    std::cerr << "\n" << ConsoleColors::RED << e.what() <<  ConsoleColors::RESET << std::endl;
                     consecutiveFailures[currentType]++;
 
                     if(consecutiveFailures[FUCKINGFAST_TYPE] >=2 && consecutiveFailures[DATANODES_TYPE] >=2 )
@@ -219,7 +219,7 @@ int main() {
                                     case 1:
                                         currentType = DATANODES_TYPE; // Switch to another mirror
                                         if (!areLinksCountEqual)
-                                            std::cerr << "One of the FitGirl mirrors might not contain " << (linksDataNodes.size() > linksFuckingFast.size() ? linksDataNodes.size() - linksFuckingFast.size() : linksFuckingFast.size() - linksDataNodes.size()) << " link(s)" << std::endl;
+                                            std::cerr << ConsoleColors::YELLOW << "CAUTION: One of the FitGirl mirrors might not contain " << (linksDataNodes.size() > linksFuckingFast.size() ? linksDataNodes.size() - linksFuckingFast.size() : linksFuckingFast.size() - linksDataNodes.size()) << " link(s)" << ConsoleColors::RESET << std::endl;
                                         linksFitGirl = linksDataNodes; // Update the loop vector
                                         fitGirl.updateHeaders(currentType); // Set default Headers
                                         validInput = true;
@@ -322,17 +322,17 @@ int main() {
     }
 
     catch (const std::runtime_error& e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << ConsoleColors::RED << e.what() << ConsoleColors::RESET << std::endl;
         return 1;
     }
 
     catch (const std::logic_error& e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << ConsoleColors::RED << e.what() << ConsoleColors::RESET << std::endl;
         return 1;
     }
 
     catch (const std::exception& e) {
-        std::cerr << "Don't know wtf happened here: " << e.what() << std::endl;
+        std::cerr << ConsoleColors::RED << "Don't know wtf happened here: " << e.what() << ConsoleColors::RESET << std::endl;
     }
 
 }

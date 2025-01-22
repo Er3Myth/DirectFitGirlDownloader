@@ -9,12 +9,6 @@
 
 class ProgressBar {
 private:
-    // ANSI color codes
-    const std::string RESET = "\033[0m";
-    const std::string BOLD = "\033[1m";
-    const std::string CYAN = "\033[36m";
-    const std::string BRIGHT_CYAN = "\033[96m";
-
     int totalSteps;
     int currentStep;
     int barWidth;

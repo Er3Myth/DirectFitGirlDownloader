@@ -1,4 +1,5 @@
 #include "LinkGenerator.h"
+#include "ConsoleColors.h"
 #include <format>
 #include <iomanip>
 #include <thread>
@@ -111,9 +112,11 @@ std::vector<std::string> LinkGenerator::getDownloadLinks(const std::string& url,
     CurlHelper::HttpResponse textResponse = curlObj->get(url);
 
     if (textResponse.statusCode != 200) {
-        std::cerr << "Status code: " << textResponse.statusCode
-                  << ". Most likely DDOS guard intervention on FitGirl's website." << std::endl;
-        std::cout << "Kindly copy the links of the selected mirror from FitGirl's *paste* website and paste them here:" << std::endl;
+        std::cerr << ConsoleColors::RED
+                  << "Status code: " << textResponse.statusCode
+                  << ". Most likely DDOS guard intervention on FitGirl's website."
+                  << ConsoleColors::RESET << std::endl;
+        std::cout << "Kindly copy the links of the selected mirror from FitGirl's *paste* website and paste them here." << std::endl;
         std::cout << "Once completed, type 'END' (without quotes) on a new line (Enter for a new line) and press Enter to finish:" << std::endl;
 
         std::string allLinks;
@@ -264,9 +267,11 @@ std::string LinkGenerator::getDataNodesLink(const std::string &downloadURL) {
             CurlHelper::HttpResponse response = curlObj->post("https://datanodes.to/download", postData);
 
             if (response.statusCode == 400 || response.statusCode == 502) {
-                std::cerr << "Status Code: "<< response.statusCode
+                std::cerr << ConsoleColors::YELLOW
+                          << "Status Code: " << response.statusCode
                           << ". Most likely a timeout from DataNodes or an invalid response." << std::endl
-                          << "Retrying in 5 seconds..." << std::endl;
+                          << "Retrying in 5 seconds..."
+                          << ConsoleColors::RESET << std::endl;
                 curlObj->reset(); // Most scuffed ass fix 😭.
                 std::this_thread::sleep_for(std::chrono::seconds(5));
                 continue;

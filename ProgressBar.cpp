@@ -1,4 +1,5 @@
 #include "ProgressBar.h"
+#include "ConsoleColors.h"
 #include <iostream>
 #include <iomanip>
 #include <chrono>
@@ -54,29 +55,29 @@ void ProgressBar::draw() {
         std::cout << customPrefix << " ";
 
     if (showSpinner) {
-        std::cout << (useColors ? BRIGHT_CYAN : "")
+        std::cout << (useColors ? ConsoleColors::BRIGHT_CYAN : "")
                   << getSpinner()
-                  << (useColors ? RESET : "") << " ";
+                  << (useColors ? ConsoleColors::RESET : "") << " ";
     }
 
     // Print the progress bar
-    std::cout << (useColors ? CYAN : "") << "[" << (useColors ? RESET : "");
+    std::cout << (useColors ? ConsoleColors::CYAN : "") << "[" << (useColors ? ConsoleColors::RESET : "");
 
     for (int i = 0; i < barWidth; ++i) {
         if (i < pos)
-            std::cout << (useColors ? CYAN : "") << "=" << (useColors ? RESET : "");
+            std::cout << (useColors ? ConsoleColors::CYAN : "") << "=" << (useColors ? ConsoleColors::RESET : "");
         else if (i == pos)
-            std::cout << (useColors ? BRIGHT_CYAN : "") << ">" << (useColors ? RESET : "");
+            std::cout << (useColors ? ConsoleColors::BRIGHT_CYAN : "") << ">" << (useColors ? ConsoleColors::RESET : "");
         else
             std::cout << " ";
     }
 
-    std::cout << (useColors ? CYAN : "") << "]" << (useColors ? RESET : "");
+    std::cout << (useColors ? ConsoleColors::CYAN : "") << "]" << (useColors ? ConsoleColors::RESET : "");
 
     // Print percentage
-    std::cout << (useColors ? BOLD + CYAN : "") << " "
+    std::cout << (useColors ? ConsoleColors::BOLD + ConsoleColors::CYAN : "") << " "
              << std::fixed << std::setprecision(1) << (progress * 100.0) << "%"
-             << (useColors ? RESET : "");
+             << (useColors ? ConsoleColors::RESET : "");
 
     // Print custom suffix if set
     if (!customSuffix.empty()) {
