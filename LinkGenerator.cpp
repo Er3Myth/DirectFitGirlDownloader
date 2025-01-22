@@ -201,7 +201,7 @@ std::string LinkGenerator::getFuckingfastLink(const std::string& downloadURL) {
     }
 
     if (textResponse.statusCode != 200) {
-        throw std::logic_error("Response Code - " + std::to_string(textResponse.statusCode) + ". Error: Request failed, unexpected issue.");
+        throw std::logic_error(std::format("Response Code - {}. Error: Request failed, unexpected issue.", textResponse.statusCode));
     }
 
     const std::regex regexPattern(R"(https://fuckingfast\.co/dl/[a-zA-Z0-9_-]+)");
@@ -263,7 +263,7 @@ std::string LinkGenerator::getDataNodesLink(const std::string &downloadURL) {
 
             CurlHelper::HttpResponse response = curlObj->post("https://datanodes.to/download", postData);
 
-            if (std::to_string(response.statusCode) == "400" || std::to_string(response.statusCode) == "502") {
+            if (response.statusCode == 400 || response.statusCode == 502) {
                 std::cerr << "Status Code: "<< response.statusCode
                           << ". Most likely a timeout from DataNodes or an invalid response." << std::endl
                           << "Retrying in 5 seconds..." << std::endl;
@@ -285,7 +285,7 @@ std::string LinkGenerator::getDataNodesLink(const std::string &downloadURL) {
                         return response.responseBody.substr(startPos, endPos - startPos);
                     }
                 }
-                else {throw std::logic_error("Failed to extract location header from response.");}
+                else {throw std::logic_error("Failed to extract url from response body.");}
             }
             else
                 throw toggle_mirrors(std::format("Status code: {}. Error: Request failed. Possibly a 404 (Not Found) or another unexpected issue. Switch mirrors.", response.statusCode));
