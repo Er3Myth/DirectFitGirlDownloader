@@ -136,8 +136,6 @@ std::vector<std::string> LinkGenerator::getDownloadLinks(const std::string& url,
         return links;
     }
 
-
-
     htmlDocPtr doc = htmlReadMemory(
         textResponse.responseBody.c_str(),
         textResponse.responseBody.length(),
@@ -267,6 +265,7 @@ std::string LinkGenerator::getDataNodesLink(const std::string &downloadURL) {
             CurlHelper::HttpResponse response = curlObj->post("https://datanodes.to/download", postData);
 
             if (response.statusCode == 400 || response.statusCode == 502) {
+                std::cout << "\r\033[K";  // Clear the current line and move the cursor to the start
                 std::cerr << ConsoleColors::YELLOW
                           << "Status Code: " << response.statusCode
                           << ". Most likely a timeout from DataNodes or an invalid response." << std::endl

@@ -4,6 +4,7 @@
 #include <chrono>
 #include <map>
 #include <windows.h>
+#include <conio.h>
 #include <oleauto.h> // For CComBSTR and COM utilities
 #include <thread>
 #include <locale> // test
@@ -70,18 +71,6 @@ public:
     VARIANT& Get() {return var; }
 private:
     VARIANT var;
-};
-
-// RAIi wrapper for SAFEARRAY
-class SafeArrayGuard {
-public:
-    SafeArrayGuard(SAFEARRAY* array): sa(array) {}
-    ~SafeArrayGuard() { if (sa) SafeArrayDestroy(sa); }
-    SAFEARRAY* Get() {return sa; }
-    SAFEARRAY** AddressOf() { return &sa; }
-    operator SAFEARRAY*() const { return sa; }
-private:
-    SAFEARRAY* sa;
 };
 
 void updateConsoleTitle(size_t current, size_t total, const std::string& currentLink, bool retry);
@@ -153,11 +142,6 @@ int main() {
 
         // Check if the number of links is the same in both mirrors.
         bool areLinksCountEqual = linksFitGirl.size() == linksDataNodes.size();
-
-        // Debugging.
-        for (string& link : linksFitGirl) {
-            cout << link << endl;
-        }
 
         std::string currentType = type;// Track consecutive failures for each mirror type
         std::map<std::string, int> consecutiveFailures = {
@@ -269,7 +253,7 @@ int main() {
             {4, 0}  // href, cookie, description, user agent
         };
 
-        SafeArrayGuard pSA(SafeArrayCreate(VT_BSTR, 2, bounds));
+        SAFEARRAY* pSA = SafeArrayCreate(VT_BSTR, 2, bounds);
         if (!pSA) {
             throw std::runtime_error("Failed to create SAFEARRAY");
         }
@@ -318,6 +302,15 @@ int main() {
         }
 
         std::cout << "Links added to IDM queue successfully!" << std::endl;
+
+        // Exit the program gracefully
+        std::cout << "\nPress any key to close this window and exit the program." << std::endl;
+
+        while (!_kbhit()) {
+
+            Sleep(100);
+        }
+        _getch(); // Get the keystroke
         return 0;
     }
 
@@ -334,7 +327,6 @@ int main() {
     catch (const std::exception& e) {
         std::cerr << ConsoleColors::RED << "Don't know wtf happened here: " << e.what() << ConsoleColors::RESET << std::endl;
     }
-
 }
 
 void updateConsoleTitle(size_t current, size_t total, const std::string& currentLink, bool retry) {
@@ -356,7 +348,6 @@ HRESULT SafePutArrayString(SAFEARRAY* psa, LONG index[], const std::wstring& str
     BSTR bstr = SysAllocString(str.c_str());
     if (!bstr) return E_OUTOFMEMORY;
     HRESULT hr = SafeArrayPutElement(psa, index, bstr);
-    SysFreeString(bstr);
     return hr;
 }
 
